@@ -1,0 +1,50 @@
+`timescale 1ns/1ns
+module tb_vending_machine();
+reg sys_clk;
+reg sys_rst_n;
+reg coin_one;
+reg coin_half;
+reg number;
+wire good;
+wire change;
+initial begin
+sys_clk = 1'b1;
+sys_rst_n <= 1'b0;
+#20
+sys_rst_n <= 1'b1;
+end
+always #10 sys_clk = ~sys_clk;
+always@(posedge sys_clk or negedge sys_rst_n)
+if(sys_rst_n == 1'b0)
+number <= 1'b0;
+else
+number <= {$random} % 2;
+always@(posedge sys_clk or negedge sys_rst_n)
+if(sys_rst_n == 1'b0)
+coin_one <= 1'b0;
+else
+coin_one <= number;
+
+always@(posedge sys_clk or negedge sys_rst_n)
+if(sys_rst_n == 1'b0)
+coin_half <= 1'b0;
+else
+coin_half <= ~number;
+
+wire [4:0] state = vending_machine_inst.state;
+wire [1:0] pi_money = vending_machine_inst.pi_money;
+
+initial begin
+$timeformat(-9, 0, "ns", 6);
+$monitor("@time %t: coin_one=%b coin_half=%b pi_money=%b state=%b good=%b change=%b", $time,coin_one,coin_half,pi_money,state,good,change);
+end
+
+vending_machine vending_machine_inst(
+.sys_clk (sys_clk),
+.sys_rst_n (sys_rst_n),
+.coin_one (coin_one),
+.coin_half (coin_half),
+.good (good),
+.change (change)
+);
+endmodule
